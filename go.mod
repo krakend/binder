@@ -1,4 +1,4 @@
-module github.com/alexeyco/binder
+module github.com/krakendio/binder
 
 go 1.18
 
