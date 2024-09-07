@@ -1,8 +1,9 @@
 package binder
 
 import (
-	"github.com/yuin/gopher-lua"
 	"io/ioutil"
+
+	lua "github.com/yuin/gopher-lua"
 )
 
 // Handler is binder function handler
@@ -18,6 +19,12 @@ type Binder struct {
 // Load apply Loader
 func (b *Binder) Load(loader *Loader) {
 	b.loaders = append(b.loaders, loader)
+}
+
+// Close closes the binder.
+// It should be called after the binder is not needed any more.
+func (b *Binder) Close() {
+	b.state.Close()
 }
 
 // DoString runs lua script string
@@ -59,7 +66,8 @@ func (b *Binder) load() {
 	}
 }
 
-// New returns new binder instance
+// New returns new binder instance.
+// The caller should call [Binder.Close] when the binder is no longer needed.
 func New(opts ...Options) *Binder {
 	options := []lua.Options{}
 
@@ -75,7 +83,6 @@ func New(opts ...Options) *Binder {
 	}
 
 	s := lua.NewState(options...)
-	defer s.Close()
 
 	if len(opts) > 0 && opts[0].SkipOpenLibs {
 		type lib struct {
