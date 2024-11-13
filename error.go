@@ -177,22 +177,26 @@ func newError(err error, h errSourceHandler) error {
 	switch err.(type) {
 	case *lua.ApiError:
 		e := err.(*lua.ApiError)
-		p := strings.Split(e.Object.String(), ":")
-		c := len(p)
-
 		var (
 			problem = -1
 			text    = e.Error()
 		)
 
-		if c > 1 {
-			if v, err := strconv.Atoi(p[1]); err == nil {
-				problem = v
-			}
-		}
+		if e.Type == lua.ApiErrorSyntax {
+			text, problem = parseSyntaxError(e.Object.String())
+		} else {
+			p := strings.Split(e.Object.String(), ":")
+			c := len(p)
 
-		if c > 2 {
-			text = strings.Trim(strings.Join(p[2:], ":"), " ")
+			if c > 1 {
+				if v, err := strconv.Atoi(p[1]); err == nil {
+					problem = v
+				}
+			}
+
+			if c > 2 {
+				text = strings.Trim(strings.Join(p[2:], ":"), " ")
+			}
 		}
 
 		return &Error{
@@ -203,6 +207,31 @@ func newError(err error, h errSourceHandler) error {
 	}
 
 	return err
+}
+
+func parseSyntaxError(errorText string) (string, int) {
+	var (
+		problem = -1
+		text    = errorText
+	)
+
+	if strings.Contains(errorText, " at EOF:") {
+		problem = 0
+		text = strings.TrimSpace(strings.Split(errorText, ":")[1]) + " at EOF"
+
+		return text, problem
+	}
+
+	parts := strings.Split(errorText, " near ")
+	if len(parts) == 2 {
+		text = strings.TrimSuffix(parts[1], "\n")
+		where := strings.Split(strings.TrimSuffix(strings.ReplaceAll(parts[0], "<string> line:", ""), ")"), "(column:")
+		if v, err := strconv.Atoi(where[0]); err == nil {
+			problem = v
+		}
+
+	}
+	return text, problem
 }
 
 func highlight(s string) string {

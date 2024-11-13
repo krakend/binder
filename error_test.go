@@ -6,6 +6,58 @@ import (
 	"testing"
 )
 
+func TestErrorSourceSyntaxError(t *testing.T) {
+	tests := []struct {
+		name     string
+		src      string
+		expected string
+	}{
+		{
+			name:     "Inline",
+			src:      "local p = person.new('Steeve');lokal t = 'fail'",
+			expected: "Line 1: 't':   parse error",
+		},
+		{
+			name:     "Parsing error",
+			src:      "local p = person.new('Steeve')\nlokal t = 'fail'",
+			expected: "Line 2: 't':   parse error",
+		},
+		{
+			name:     "Bad token",
+			src:      "local p = person.new('Steeve')\nlocal t & 'fail'",
+			expected: "Line 2: '&':   Invalid token",
+		},
+		{
+			name:     "Unterminated string",
+			src:      "local p = person.new('Steeve)\nlocal t = 'okay'",
+			expected: "Line 2: 'Steeve)':   unterminated string",
+		},
+		{
+			name:     "End of file",
+			src:      "local p = person.new('Steeve')\nprint(p:email()",
+			expected: "Line 0: syntax error at EOF",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			b := getBinder()
+
+			if err := b.DoString(test.src); err != nil {
+				switch err.(type) {
+				case *Error:
+					e := err.(*Error)
+					if e.Error() != test.expected {
+						t.Errorf("Error message does not match, expected=\"%s\" got=\"%s\"", test.expected, e.Error())
+					}
+				default:
+					t.Error("Must return error", err)
+				}
+			}
+		})
+	}
+}
+
 func TestErrorSourceSmall_Func(t *testing.T) {
 	b := getBinder()
 
