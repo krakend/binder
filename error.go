@@ -224,7 +224,7 @@ func parseSyntaxError(errorText string) (string, int) {
 
 	parts := strings.Split(errorText, " near ")
 	if len(parts) == 2 {
-		text = strings.TrimSuffix(parts[1], "\n")
+		text = strings.Join(strings.Fields(strings.TrimSuffix(parts[1], "\n")), " ")
 		where := strings.Split(strings.TrimSuffix(strings.ReplaceAll(parts[0], "<string> line:", ""), ")"), "(column:")
 		if v, err := strconv.Atoi(where[0]); err == nil {
 			problem = v

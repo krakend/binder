@@ -15,22 +15,22 @@ func TestErrorSourceSyntaxError(t *testing.T) {
 		{
 			name:     "Inline",
 			src:      "local p = person.new('Steeve');lokal t = 'fail'",
-			expected: "Line 1: 't':   parse error",
+			expected: "Line 1: 't': parse error",
 		},
 		{
 			name:     "Parsing error",
 			src:      "local p = person.new('Steeve')\nlokal t = 'fail'",
-			expected: "Line 2: 't':   parse error",
+			expected: "Line 2: 't': parse error",
 		},
 		{
 			name:     "Bad token",
 			src:      "local p = person.new('Steeve')\nlocal t & 'fail'",
-			expected: "Line 2: '&':   Invalid token",
+			expected: "Line 2: '&': Invalid token",
 		},
 		{
 			name:     "Unterminated string",
 			src:      "local p = person.new('Steeve)\nlocal t = 'okay'",
-			expected: "Line 2: 'Steeve)':   unterminated string",
+			expected: "Line 2: 'Steeve)': unterminated string",
 		},
 		{
 			name:     "End of file",
