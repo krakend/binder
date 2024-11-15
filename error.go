@@ -137,7 +137,9 @@ func newSource(code string, problem int) *source {
 			before = after - length
 		}
 
-		lines = lines[before-1 : after]
+		if before > 0 {
+			lines = lines[before-1 : after]
+		}
 	}
 
 	return &source{
